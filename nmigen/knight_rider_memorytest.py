@@ -1,5 +1,5 @@
-# If the design does not create a "sync" clock domain, it is created by the nMigen build system
-# using the platform default clock (and default reset, if any).
+# Makes a "Knight rider" pattern on the LEDs by reading from a defined ROM
+# 
 
 from typing import List
 
@@ -9,35 +9,27 @@ from nmigen.build import Platform, Resource, Pins, Clock, Attrs
 from nmigen.build.run import LocalBuildProducts
 from nmigen import *
 from math import ceil, log2
-from nmigen.memory import *
+from nmigen_soc.memory import *
 from nmigen_soc.wishbone import *
 
 
 
 from nmigen.vendor.lattice_ice40 import LatticeICE40Platform
 
-
-#Lookup table for the alphabet
-
-class Alphabet():
-    def __init__(self):
-        
-        self.alphabetarray=[
-                [1, 2, 4, 8, 16, 32, 64, 128],   #47
                    
 
-# Simulated read-only memory module.
+# Simulated read-only memory module.     Taken from https://vivonomicon.com/2020/04/14/learning-fpga-design-with-nmigen/
 class ROM( Elaboratable, Interface ):
   def __init__( self, data ):
     # Record size.
     self.size = len( data )
     # Data storage.
-    self.data = Memory( width = 32, depth = self.size, init = data )
+    self.data = Memory( width = 8, depth = self.size, init = data )
     # Memory read port.
     self.r = self.data.read_port()
     # Initialize Wishbone bus interface.
     Interface.__init__( self,
-                        data_width = 32,
+                        data_width = 8,
                         addr_width = ceil( log2( self.size + 1 ) ) )
     self.memory_map = MemoryMap( data_width = self.data_width,
                                  addr_width = self.addr_width,
@@ -97,27 +89,23 @@ class Blinky(Elaboratable):
     def elaborate(self, platform):
         m = Module()
         m.submodules.leds = leds = Leds()
-        alphabet = Alphabet()
+        data = [1, 2, 4, 8, 16, 32, 64, 128] #/ 47
         timer = Signal(28)
         p = Signal(11)
+        m.submodules.rom = rom = ROM(data)
+
+
         m.d.sync += timer.eq(timer + 1)
-        m.d.comb += p.eq(timer[-11:-1])
+        m.d.sync += p.eq(timer[-11:-1])
         
-        #asciitable = Array([Signal(unsigned(8)) for _ in range(2048)])
+        
+        
+        
+        
+        # Set the led values
 
-        l=0
-        for i in range(0, 255):
-            for j in range(0, 8):  
-                #m.d.comb += asciitable[l].eq(alphabet.alphabetarray[47][j])
-        
-                l=l+1
-        
-        
-        
-
-        # Set the led values.
-        
-        m.d.comb += leds.x.eq(asciitable[p])
+        m.d.sync += rom.adr.eq(p)
+        m.d.sync += leds.x.eq(rom.dat_r)
 
 
         return m

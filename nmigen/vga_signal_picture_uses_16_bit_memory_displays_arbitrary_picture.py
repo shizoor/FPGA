@@ -167,7 +167,7 @@ class vgasignal(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        image = Image.open('pictures/tinylion.png')   #open the graphic.   Use 10 pixels vertically.  
+        image = Image.open('pictures/tinylion.png')   #open the graphic.     
         maxsize = (267,480)
         image.thumbnail(maxsize, PIL.Image.ANTIALIAS)
         image.show()

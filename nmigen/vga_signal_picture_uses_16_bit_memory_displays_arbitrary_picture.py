@@ -1,5 +1,5 @@
-# VGA colour test bars.   Add colourbars.png or a file of your choosing into a 
-# directory called pictures.  10 px high, 266 px wide.  
+# Displays an arbitrary picture specified.   Change this line : image = Image.open('pictures/tinylion.png')   
+# To do : find why there's a fault on the leftmost pixels.
 
 from typing import List
 from array import *
